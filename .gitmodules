@@ -1,0 +1,3 @@
+[submodule "3rd-dependency/dpdk"]
+	path = 3rd-dependency/dpdk
+	url = git@github.com:DPDK/dpdk.git
