@@ -23,52 +23,25 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
-#include <ray_log.h>
-#include <ray_errno.h>
-#include <ray_device.h>
-#include <ray_string.h>
-#include <ray_devif_class.h>
+#ifndef __RAY_STRING_H__
+#define  __RAY_STRING_H__ 1
 
+#include "ray_config.h"
 
-static struct 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-static struct ray_tailq_devclass_head devclasses_head =
-					TAILQ_HEAD_INITIALIZER(devclasses_head);
+#ifdef CONFIG_LINUX
+#define ray_strcmp strcmp
+#elif defined(CONFIG_WINDOWS)
+#define ray_strcmp
+#elif defined(CONFIG_OSX)
+#define ray_strcmp
+#endif
 
-ray_s32_t devclass_exist(ray_devif_class_t *devif_class)
-{
-	ray_s32_t ret = 0;
-	struct ray_tailq_devclass_elem *devclass = NULL;
-
-	TAILQ_FOREACH(devclass, &devclasses_head, next) {
-		if (ray_strcmp(devclass->type, devif_class->type) == 0) {
-			ret = 1;
-		}
-	}
-	return ret;
+#ifdef __cplusplus
 }
+#endif
 
-ray_devif_class_t *
-get_devif_class(ray_consts8_t *class_name)
-{
-	struct ray_tailq_devclass_elem *devclass = NULL;
-
-	TAILQ_FOREACH(devclass, &devclasses_head, next) {
-		RAY_LOG("","", "%s\n", devclass->type);
-	}
-}
-
-void register_devif_class(ray_devif_class_t *devif_class)
-{
-	struct ray_tailq_devclass_elem *new_elem;
-	/* Invalid parameter check */
-	if(devif_class == NULL) {
-		RAY_LOG("", "", "Invalid Parameter!\n");
-		return -EINVAL;
-	}
-
-	if (devclass_exist(devif_class))
-		return -EEXIST;
-
-	new_elem = ray_malloc();
-}
+#endif //__RAY_STRING_H__
