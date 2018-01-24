@@ -33,7 +33,12 @@ extern "C" {
 #endif
 
 #ifdef CONFIG_LINUX
-#define ray_strcmp strcmp
+#include <string.h>
+
+#define ray_strcmp   strcmp
+#define ray_strncmp  strncmp
+#define ray_strerror strerror
+
 #elif defined(CONFIG_WINDOWS)
 #define ray_strcmp
 #elif defined(CONFIG_OSX)

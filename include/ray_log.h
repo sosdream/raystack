@@ -32,7 +32,15 @@
 extern "C" {
 #endif
 
-#define RAY_LOG(l, t, ...) printf(__VA_ARGS__);
+enum LOG_LEVEL {
+	EMERG,
+	ERR,
+	WARN,
+	INFO,
+	DEBUG,
+};
+
+#define RAY_LOG(l, ...) printf(__VA_ARGS__);
 
 
 #ifdef __cplusplus

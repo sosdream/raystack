@@ -24,17 +24,23 @@
  * SUCH DAMAGE.
  */
 #include <stdio.h>
+#include <ray_log.h>
+#include <ray_errno.h>
+#include <ray_string.h>
 #include "ray_device.h"
 #include <ray_devif_class.h>
 
 int main()
 {
 	ray_devif_t *devif;
-	ray_devif_class_t *dpdk_class = get_devif_class("dpdk");
-
-	dpdk_class->init();
-	devif = dpdk_class->create_dev();
-	dpdk_class->start(devif);
+	ray_devif_class_t *virt_class = get_devif_class("virt");
+	if (virt_class == NULL) {
+		RAY_LOG(ERR, "%s\n", ray_strerror(errno));
+		return -1;
+	}
+	virt_class->init();
+	devif = virt_class->create_dev();
+	virt_class->start(devif);
 
 	return 0;
 }

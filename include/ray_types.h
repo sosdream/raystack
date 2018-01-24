@@ -26,6 +26,8 @@
 #ifndef __RAY_TYPES_H__
 #define  __RAY_TYPES_H__ 1
 
+#include <stdio.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -42,6 +44,15 @@ typedef short			   ray_s16_t;
 typedef unsigned char	   ray_u8_t;
 typedef char			   ray_s8_t;
 typedef const char         ray_consts8_t;
+
+typedef int 			   ray_bool_t;
+
+#ifndef FALSE
+#define FALSE				0
+#endif
+#ifndef TRUE
+#define TRUE				1
+#endif
 
 #ifdef __cplusplus
 }

@@ -54,20 +54,17 @@ struct __ray_dev_status {
 	ray_u64_t tx_errors;
 };
 
-typedef struct __ray_dev_list {
-	ray_devif_t *dev;
-	struct ray_list dev_list;
-} ray_dev_list_t;
-
 struct __ray_dev_class {
-	ray_consts8_t *type;
-	ray_dev_list_t dev_list;
+	ray_consts8_t *name;
 	ray_s32_t    (*init)(void);
 	ray_devif_t *(*create_dev)(void);
-	ray_devif_t *(*create_dev_byport)(ray_s32_t portid);
+	ray_devif_t *(*create_dev_byport)(ray_s32_t);
 	ray_s32_t    (*start)(ray_devif_t *);
 	ray_s32_t    (*recv)(ray_devif_t *, ray_packet_t *);
 	ray_s32_t    (*send)(ray_devif_t *, ray_packet_t *);
+
+	RAY_STAILQ_ENTRY(ray_devif_class_t) class_list;
+	RAY_STAILQ_HEAD(, ray_devif_t) head_devs;
 };
 
 struct __ray_device {
@@ -82,8 +79,9 @@ struct __ray_device {
 	ray_devif_status_t status;
 	/* Capacities of the device */
 	ray_devif_capacity_t capacities;
-};
 
+	RAY_STAILQ_ENTRY(ray_devif_t) attach_list;
+};
 
 #ifdef __cplusplus
 }

@@ -38,8 +38,26 @@
 extern "C" {
 #endif
 
-ray_devif_class_t *
-get_devif_class(ray_consts8_t *class_name);
+void register_devif_class(ray_devif_class_t *devif_class);
+
+ray_devif_class_t *get_devif_class(ray_consts8_t *class_name);
+
+//#define INIT_CLASS_LIST(head)						\
+//RAY_INIT_PRIO(preinit_##head, 101);					\
+//static void preinit_##head()(void) {				\
+	head = RAY_STAILQ_HEAD_INITIALIZER(head);		\
+}
+#define INIT_CLASS_LIST(head)												\
+static void __attribute__((constructor(101), used)) preinit_##head(void)	\
+{																			\
+	RAY_STAILQ_INIT(&head);													\
+}
+
+#define REGISTER_DEV_CLASS(class)											\
+static void __attribute__((constructor(102), used)) preinit_##class(void)	\
+{																			\
+	register_devif_class(&class);											\
+}
 
 #ifdef __cplusplus
 }

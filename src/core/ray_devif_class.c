@@ -27,22 +27,20 @@
 #include <ray_errno.h>
 #include <ray_device.h>
 #include <ray_string.h>
+#include <ray_list.h>
 #include <ray_devif_class.h>
 
+RAY_STAILQ_HEAD(, ray_devif_class_t) ray_class_head;
 
-static struct 
-
-static struct ray_tailq_devclass_head devclasses_head =
-					TAILQ_HEAD_INITIALIZER(devclasses_head);
-
-ray_s32_t devclass_exist(ray_devif_class_t *devif_class)
+ray_bool_t devif_class_exist(ray_devif_class_t *devif_class)
 {
-	ray_s32_t ret = 0;
-	struct ray_tailq_devclass_elem *devclass = NULL;
+	ray_bool_t ret = FALSE;
+	ray_devif_class_t *class;
 
-	TAILQ_FOREACH(devclass, &devclasses_head, next) {
-		if (ray_strcmp(devclass->type, devif_class->type) == 0) {
-			ret = 1;
+	RAY_STAILQ_FOREACH(class, &ray_class_head, class_list) {
+		if (ray_strcmp(class->name, devif_class->name) == 0) {
+			ret = TRUE;
+			break;
 		}
 	}
 	return ret;
@@ -51,24 +49,38 @@ ray_s32_t devclass_exist(ray_devif_class_t *devif_class)
 ray_devif_class_t *
 get_devif_class(ray_consts8_t *class_name)
 {
-	struct ray_tailq_devclass_elem *devclass = NULL;
+	ray_devif_class_t *class;
 
-	TAILQ_FOREACH(devclass, &devclasses_head, next) {
-		RAY_LOG("","", "%s\n", devclass->type);
+	if (class_name == NULL) {
+		errno = EINVAL;
+		goto no_found;
 	}
+
+	RAY_STAILQ_FOREACH(class, &ray_class_head, class_list) {
+		if (ray_strcmp(class->name, class_name) == 0) {
+			return class;
+		}
+	}
+
+no_found:
+	return NULL;
 }
 
 void register_devif_class(ray_devif_class_t *devif_class)
 {
-	struct ray_tailq_devclass_elem *new_elem;
 	/* Invalid parameter check */
 	if(devif_class == NULL) {
-		RAY_LOG("", "", "Invalid Parameter!\n");
-		return -EINVAL;
+		RAY_LOG(ERR, "Invalid Parameter!\n");
+		errno = EINVAL;
+		return;
 	}
 
-	if (devclass_exist(devif_class))
-		return -EEXIST;
+	if (devif_class_exist(devif_class)) {
+		errno = EEXIST;
+		return;
+	}
 
-	new_elem = ray_malloc();
+	RAY_STAILQ_INSERT_TAIL(&ray_class_head, devif_class, class_list);
 }
+
+INIT_CLASS_LIST(ray_class_head);
