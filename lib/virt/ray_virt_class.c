@@ -5,6 +5,7 @@
 
 static ray_s32_t virt_init(void)
 {
+	/* Init the platform */
 	RAY_LOG(INFO, "This is init!\n");
 	return 0;
 }

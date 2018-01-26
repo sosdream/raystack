@@ -43,8 +43,8 @@ extern "C" {
  */
 #define RAY_STAILQ_HEAD(name, type)                                             \
 struct name {                                                                   \
-        struct type *stqh_first;        /* first element */                     \
-        struct type **stqh_last;        /* addr of last next element */         \
+        type *stqh_first;        /* first element */                            \
+        type **stqh_last;        /* addr of last next element */                \
 }
 
 #define RAY_STAILQ_HEAD_INITIALIZER(head)                                       \
@@ -52,7 +52,7 @@ struct name {                                                                   
 
 #define RAY_STAILQ_ENTRY(type)                                                  \
 struct {                                                                        \
-        struct type *stqe_next; /* next element */                              \
+        type *stqe_next; /* next element */                                     \
 }
 
 /*

@@ -38,9 +38,9 @@
 extern "C" {
 #endif
 
-void register_devif_class(ray_devif_class_t *devif_class);
+void devif_class_register(ray_devif_class_t *devif_class);
 
-ray_devif_class_t *get_devif_class(ray_consts8_t *class_name);
+ray_devif_class_t *devif_class_get_byname(ray_consts8_t *class_name);
 
 //#define INIT_CLASS_LIST(head)						\
 //RAY_INIT_PRIO(preinit_##head, 101);					\
@@ -56,7 +56,7 @@ static void __attribute__((constructor(101), used)) preinit_##head(void)	\
 #define REGISTER_DEV_CLASS(class)											\
 static void __attribute__((constructor(102), used)) preinit_##class(void)	\
 {																			\
-	register_devif_class(&class);											\
+	devif_class_register(&class);											\
 }
 
 #ifdef __cplusplus

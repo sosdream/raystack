@@ -33,7 +33,7 @@
 int main()
 {
 	ray_devif_t *devif;
-	ray_devif_class_t *virt_class = get_devif_class("virt");
+	ray_devif_class_t *virt_class = devif_class_get_byname("virt");
 	if (virt_class == NULL) {
 		RAY_LOG(ERR, "%s\n", ray_strerror(errno));
 		return -1;

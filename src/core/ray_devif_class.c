@@ -30,6 +30,7 @@
 #include <ray_list.h>
 #include <ray_devif_class.h>
 
+/* Save all register device class */
 RAY_STAILQ_HEAD(, ray_devif_class_t) ray_class_head;
 
 ray_bool_t devif_class_exist(ray_devif_class_t *devif_class)
@@ -46,8 +47,7 @@ ray_bool_t devif_class_exist(ray_devif_class_t *devif_class)
 	return ret;
 }
 
-ray_devif_class_t *
-get_devif_class(ray_consts8_t *class_name)
+ray_devif_class_t *devif_class_get_byname(ray_consts8_t *class_name)
 {
 	ray_devif_class_t *class;
 
@@ -66,7 +66,7 @@ no_found:
 	return NULL;
 }
 
-void register_devif_class(ray_devif_class_t *devif_class)
+void devif_class_register(ray_devif_class_t *devif_class)
 {
 	/* Invalid parameter check */
 	if(devif_class == NULL) {
