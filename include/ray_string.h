@@ -38,6 +38,8 @@ extern "C" {
 #define ray_strcmp   strcmp
 #define ray_strncmp  strncmp
 #define ray_strerror strerror
+#define ray_sprintf  sprintf
+#define ray_strdup   strdup
 
 #elif defined(CONFIG_WINDOWS)
 #define ray_strcmp

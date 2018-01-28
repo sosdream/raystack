@@ -40,6 +40,8 @@ typedef struct __ray_dev_capacity ray_devif_capacity_t;
 typedef struct __ray_dev_status   ray_devif_status_t;
 typedef struct __ray_dev_class    ray_devif_class_t;
 typedef struct __ray_device       ray_devif_t;
+typedef struct __ray_device_ops   ray_devif_ops_t;
+typedef void (*dev_start_loop_t)(ray_devif_t *);
 
 struct __ray_dev_capacity {
 	ray_u32_t mtu;
@@ -55,16 +57,30 @@ struct __ray_dev_status {
 };
 
 struct __ray_dev_class {
-	ray_consts8_t *name;
+	const ray_s8_t const *name;
 	ray_s32_t    (*init)(void);
 	ray_devif_t *(*create_dev)(void);
 	ray_devif_t *(*create_dev_byport)(ray_s32_t);
-	ray_s32_t    (*start)(ray_devif_t *);
-	ray_s32_t    (*recv)(ray_devif_t *, ray_packet_t *);
-	ray_s32_t    (*send)(ray_devif_t *, ray_packet_t *);
+	void         (*destroy_dev)(ray_devif_t *);
+	void         (*destroy_all_dev)(void);
 
 	RAY_STAILQ_ENTRY(ray_devif_class_t) class_list;
+	/* Need a atomic lock to protect the visit of the below field */
+	ray_s32_t    devif_count;
 	RAY_STAILQ_HEAD(, ray_devif_t) head_devs;
+};
+
+struct __ray_device_ops {
+	ray_s32_t    (*if_start)(ray_devif_t *, ray_u32_t core_id, dev_start_loop_t loop);
+	ray_s32_t    (*if_input)(ray_devif_t *, ray_packet_t *);
+	ray_s32_t    (*if_output)(ray_devif_t *, ray_packet_t *);
+};
+
+enum DEVICE_STATE_E {
+	DEVICE_RUNNING = 0x1,
+	DEVICE_STOPING = 0x2,
+	DEVICE_STOPED  = 0x4,
+	DEVICE_SUSPEND = 0x8,
 };
 
 struct __ray_device {
@@ -72,8 +88,13 @@ struct __ray_device {
 	ray_s8_t *name;
 	/* Identify the nic device */
 	ray_s32_t dev_id;
+	/* RUNNING, STOPED, SUSPEND */
+	ray_u32_t state;
 	/* Function of the device */
 	ray_devif_class_t *class;
+
+	/* Functionality of the device */
+	ray_devif_ops_t *ops;
 
 	/* Status statistic of the device */
 	ray_devif_status_t status;

@@ -27,12 +27,17 @@
 #define  __RAY_MEMORY_H__ 1
 
 #include "ray_types.h"
+#include <malloc.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+#define RAY_CACHELINE_ALIGN             64
 
+#define ray_malloc(size, align)  		malloc(size)
+#define ray_calloc(size, nmemb, align)  calloc(nmemb, size)
+#define ray_realloc(prt, size, align) 	realloc(prt, size)
 
 #ifdef __cplusplus
 }

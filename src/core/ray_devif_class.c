@@ -47,7 +47,7 @@ ray_bool_t devif_class_exist(ray_devif_class_t *devif_class)
 	return ret;
 }
 
-ray_devif_class_t *devif_class_get_byname(ray_consts8_t *class_name)
+ray_devif_class_t *devif_class_get_byname(const ray_s8_t const *class_name)
 {
 	ray_devif_class_t *class;
 
@@ -80,6 +80,10 @@ void devif_class_register(ray_devif_class_t *devif_class)
 		return;
 	}
 
+	/* Init the class */
+	devif_class->init();
+
+	/* Insert the tail list */
 	RAY_STAILQ_INSERT_TAIL(&ray_class_head, devif_class, class_list);
 }
 

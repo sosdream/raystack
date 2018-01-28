@@ -37,6 +37,7 @@ typedef struct __ray_packet ray_packet_t;
 /* the packet buffer */
 struct __ray_packet {
 	ray_u8_t *data;
+	ray_u16_t data_len;
 	/* The next segment of the packet */
 	ray_packet_t  *next;
 };

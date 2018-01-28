@@ -40,7 +40,7 @@ extern "C" {
 
 void devif_class_register(ray_devif_class_t *devif_class);
 
-ray_devif_class_t *devif_class_get_byname(ray_consts8_t *class_name);
+ray_devif_class_t *devif_class_get_byname(const ray_s8_t const*class_name);
 
 //#define INIT_CLASS_LIST(head)						\
 //RAY_INIT_PRIO(preinit_##head, 101);					\

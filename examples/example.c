@@ -27,20 +27,51 @@
 #include <ray_log.h>
 #include <ray_errno.h>
 #include <ray_string.h>
+#include <ray_packet.h>
 #include "ray_device.h"
-#include <ray_devif_class.h>
+#include <ray_devif_class.h>	
+
+#include <pcap/pcap.h>
+
+#define VIRT_DEVICE_SOURCE "./examples/pcap/test.pcap"
+
+
+void dev_loop(ray_devif_t *devif)
+{
+	pcap_t *sources;
+	ray_packet_t packet;
+	ray_u8_t *data, errbuf[1024];
+	ray_s32_t nonblock = 0;
+	ray_u32_t count = 0;
+	ray_devif_ops_t *ops;
+	struct pcap_pkthdr header;
+	FILE *pcapfile;
+
+	ops = devif->ops;
+
+	sources = pcap_open_offline(VIRT_DEVICE_SOURCE, errbuf);
+	pcap_setnonblock(sources, nonblock, errbuf);
+
+	while(count++ < 100) {
+		data = pcap_next(sources, &header);
+		packet.data = data;
+		packet.data_len  = header.len;
+		ops->if_input(devif, &packet);
+	}
+	pcap_close(sources);
+}
 
 int main()
 {
 	ray_devif_t *devif;
+	ray_devif_ops_t *devops;
 	ray_devif_class_t *virt_class = devif_class_get_byname("virt");
 	if (virt_class == NULL) {
 		RAY_LOG(ERR, "%s\n", ray_strerror(errno));
 		return -1;
 	}
-	virt_class->init();
 	devif = virt_class->create_dev();
-	virt_class->start(devif);
-
+	devops = devif->ops;
+	devops->if_start(devif, 0, dev_loop);
 	return 0;
 }
