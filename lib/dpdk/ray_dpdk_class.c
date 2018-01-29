@@ -23,58 +23,56 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
-#include <stdio.h>
 #include <ray_log.h>
-#include <ray_errno.h>
+#include <ray_types.h>
 #include <ray_string.h>
-#include <ray_packet.h>
-#include "ray_device.h"
-#include <ray_devif_class.h>	
+#include <ray_device.h>
+#include <ray_devif_class.h>
 
-#include <pcap/pcap.h>
+#include <rte_debug.h>
 
-#define VIRT_DEVICE_SOURCE "./examples/pcap/test.pcap"
+/* Macro Define */
+#define DPDK_DEVIF_CLASS        "dpdk"
 
+ray_devif_t *dpdk_internal_create_dev(ray_devif_class_t *devif_class);
+static ray_devif_class_t dpdk_device_class;
 
-void dev_loop(ray_devif_t *devif)
+static ray_s32_t dpdk_init(void)
 {
-	pcap_t *sources;
-	ray_packet_t packet;
-	ray_u8_t *data, errbuf[1024];
-	ray_s32_t nonblock = 0;
-	ray_u32_t count = 0;
-	ray_devif_ops_t *ops;
-	struct pcap_pkthdr header;
-
-	ops = devif->ops;
-
-	sources = pcap_open_offline(VIRT_DEVICE_SOURCE, errbuf);
-	if (sources == NULL) {
-		RAY_LOG(INFO, "%s\n", ray_strerror(errno))
-		return;
+	ray_s32_t ret;
+	ray_s32_t argc = 1;
+	ray_s8_t *argv = DPDK_DEVIF_CLASS;
+	/* Init the platform */
+	ret = rte_eal_init(argc, &argv);
+	if (ret < 0) {
+		rte_panic("Init DPDK eal failed");
 	}
-	pcap_setnonblock(sources, nonblock, errbuf);
-
-	while(count++ < 100) {
-		data = pcap_next(sources, &header);
-		packet.data = data;
-		packet.data_len  = header.len;
-		ops->if_input(devif, &packet);
-	}
-	pcap_close(sources);
-}
-
-int main()
-{
-	ray_devif_t *devif;
-	ray_devif_ops_t *devops;
-	ray_devif_class_t *virt_class = devif_class_get_byname("dpdk");
-	if (virt_class == NULL) {
-		RAY_LOG(ERR, "%s\n", ray_strerror(errno));
-		return -1;
-	}
-	devif = virt_class->create_dev();
-	devops = devif->ops;
-	devops->if_start(devif, 0, dev_loop);
+	RAY_LOG(INFO, "DPDK device class init!\n");
 	return 0;
 }
+
+static ray_devif_t *dpdk_create_dev(void)
+{
+	return dpdk_internal_create_dev(&dpdk_device_class);
+}
+
+static ray_devif_t *dpdk_create_dev_byport(ray_s32_t portid)
+{
+	return NULL;
+}
+
+
+
+static ray_devif_class_t dpdk_device_class = {
+	.name = DPDK_DEVIF_CLASS,
+	.init = dpdk_init,
+	.create_dev = dpdk_create_dev,
+	.create_dev_byport = dpdk_create_dev_byport,
+	.destroy_dev = NULL,
+	.destroy_all_dev = NULL,
+
+	.devif_count = 0,
+	.head_devs  = RAY_STAILQ_HEAD_INITIALIZER(dpdk_device_class.head_devs),
+};
+
+REGISTER_DEV_CLASS(dpdk_device_class);

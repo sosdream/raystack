@@ -1,3 +1,6 @@
 [submodule "3rd-dependency/dpdk"]
 	path = 3rd-dependency/dpdk
 	url = git@github.com:DPDK/dpdk.git
+[submodule "3rd-dependency/PF_RING"]
+	path = 3rd-dependency/PF_RING
+	url = git@github.com:ntop/PF_RING.git
