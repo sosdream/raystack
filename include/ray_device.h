@@ -27,6 +27,7 @@
 #define  __RAY_DEVICE_H__ 1
 #include "ray_packet.h"
 #include "ray_list.h"
+#include "proto/ray_ether.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -77,33 +78,44 @@ struct __ray_device_ops {
 };
 
 enum DEVICE_STATE_E {
-	DEVICE_RUNNING = 0x1,
-	DEVICE_STOPING = 0x2,
-	DEVICE_STOPED  = 0x4,
-	DEVICE_SUSPEND = 0x8,
+	DEVICE_INIT_MASK 	= 0x1,
+	DEVICE_RUNNING_MASK = 0x2,
+	DEVICE_STOPING_MASK = 0x4,
+	DEVICE_STOPED_MASK  = 0x8,
+	DEVICE_SUSPEND_MASK = 0x10,
 };
 
 struct __ray_device {
 	/* Name of the Nic device */
-	ray_s8_t *name;
+	ray_s8_t 		    *name;
 	/* Identify the nic device */
-	ray_s32_t dev_id;
-	/* RUNNING, STOPED, SUSPEND */
-	ray_u32_t state;
+	ray_s32_t 			 dev_id;
+	struct eth_addr 	 dev_mac;
+	/* UNINTIALIZATION, RUNNING, STOPED, SUSPEND */
+	ray_u32_t 			 state;
 	/* Function of the device */
-	ray_devif_class_t *class;
+	ray_devif_class_t   *class;
 
 	/* Functionality of the device */
-	ray_devif_ops_t *ops;
+	ray_devif_ops_t     *ops;
 
 	/* Status statistic of the device */
-	ray_devif_status_t status;
+	ray_devif_status_t   status;
 	/* Capacities of the device */
 	ray_devif_capacity_t capacities;
 
 	RAY_STAILQ_ENTRY(ray_devif_t) attach_list;
 };
 
+#define UNINTIALIZATION ~DEVICE_INIT_MASK
+#define INTIALIZATION    DEVICE_INIT_MASK
+
+/* Device State Checker */
+#define DEVICE_INITED(dev) ((dev->state) & DEVICE_INIT_MASK)
+#define DEVICE_SET_STATE(dev, st)											\
+({																			\
+	dev->state |= st;														\
+})
 #ifdef __cplusplus
 }
 #endif

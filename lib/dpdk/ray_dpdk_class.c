@@ -30,11 +30,17 @@
 #include <ray_devif_class.h>
 
 #include <rte_debug.h>
-
+#include <rte_mbuf.h>
 /* Macro Define */
 #define DPDK_DEVIF_CLASS        "dpdk"
+#define DPDK_MEMORY_POOL_NAME   "dpdk_pool"
 
-ray_devif_t *dpdk_internal_create_dev(ray_devif_class_t *devif_class);
+#define NB_MBUF   8192
+#define MEMPOOL_CACHE_SIZE 256
+
+ray_devif_t *dpdk_internal_create_dev(ray_devif_class_t *, struct rte_mempool *);
+
+static struct rte_mempool *dpdk_mempool = NULL;
 static ray_devif_class_t dpdk_device_class;
 
 static ray_s32_t dpdk_init(void)
@@ -45,20 +51,29 @@ static ray_s32_t dpdk_init(void)
 	/* Init the platform */
 	ret = rte_eal_init(argc, &argv);
 	if (ret < 0) {
-		rte_panic("Init DPDK eal failed");
+		rte_panic("Init DPDK Failed!");
 	}
 	RAY_LOG(INFO, "DPDK device class init!\n");
+	/* Init the packet memory pool */
+	dpdk_mempool = rte_pktmbuf_pool_create(DPDK_MEMORY_POOL_NAME,
+							 NB_MBUF,MEMPOOL_CACHE_SIZE,
+							 0,
+							 RTE_MBUF_DEFAULT_BUF_SIZE,
+							 rte_socket_id());
+	if (dpdk_mempool == NULL) {
+		rte_panic("Can't init dpdk memory pool!");
+	}
 	return 0;
 }
 
 static ray_devif_t *dpdk_create_dev(void)
 {
-	return dpdk_internal_create_dev(&dpdk_device_class);
+	return dpdk_internal_create_dev(&dpdk_device_class, dpdk_mempool);
 }
 
 static ray_devif_t *dpdk_create_dev_byport(ray_s32_t portid)
 {
-	return NULL;
+	return dpdk_internal_create_dev(&dpdk_device_class, dpdk_mempool);
 }
 
 

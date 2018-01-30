@@ -68,13 +68,23 @@ int main()
 {
 	ray_devif_t *devif;
 	ray_devif_ops_t *devops;
-	ray_devif_class_t *virt_class = devif_class_get_byname("dpdk");
-	if (virt_class == NULL) {
+	ray_devif_class_t *dpdk_class = devif_class_get_byname("dpdk");
+	if (dpdk_class == NULL) {
 		RAY_LOG(ERR, "%s\n", ray_strerror(errno));
 		return -1;
 	}
-	devif = virt_class->create_dev();
+	dpdk_class->init();
+
+	devif = dpdk_class->create_dev();
+	if (devif == NULL) {
+		RAY_LOG(ERR, "Create dpdk device failed\n");
+		return -1;
+	}
 	devops = devif->ops;
-	devops->if_start(devif, 0, dev_loop);
+	devops->if_start(devif, 1, dev_loop);
+	/* implement manager */
+	while (1) {
+		sleep(1);
+	}
 	return 0;
 }
