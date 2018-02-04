@@ -25,7 +25,7 @@
  */
 #ifndef __RAY_PACKET_H__
 #define  __RAY_PACKET_H__ 1
-
+#include <ray_debug.h>
 #include "ray_types.h"
 
 #ifdef __cplusplus
@@ -37,10 +37,38 @@ typedef struct __ray_packet ray_packet_t;
 /* the packet buffer */
 struct __ray_packet {
 	ray_u8_t *data;
+	ray_u16_t data_off;
 	ray_u16_t data_len;
 	/* The next segment of the packet */
 	ray_packet_t  *next;
 };
+
+#define RAY_PACKET_SANITY_CHECK(pkt) do {									\
+	if (pkt == NULL)														\
+		RAY_PANIC("packet is null!");										\
+	if (pkt->data_len == 0 || pkt->data_off > pkt->data_len)				\
+		RAY_PANIC("packet len is error!");									\
+} while(0)
+
+static inline ray_u8_t *ray_packet_append(ray_packet_t *pkt, ray_u16_t len)
+{
+	void *tail;
+	ray_packet_t *pkt_last;
+
+
+}
+#define RAY_PACKET_DATA(pkt)												\
+({																			\
+	void *ptr;																\
+	RAY_PACKET_SANITY_CHECK(pkt);											\
+	ptr = pkt->data + pkt->data_off;										\
+	ptr;																	\
+}) 
+#define RAY_PACKET_LEN(pkt) ({												\
+	RAY_PACKET_SANITY_CHECK(pkt);											\
+	pkt->data_len;															\
+})
+
 
 #ifdef __cplusplus
 }

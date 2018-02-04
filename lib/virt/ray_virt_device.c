@@ -27,11 +27,13 @@
 #include <ray_device.h>
 #include <ray_string.h>
 #include <ray_memory.h>
+#include <ray_proto.h>
 
 /* Macro Define */
 #define DEVICE_NAME_LENGTH		128
 
 static ray_devif_ops_t virt_device_ops;
+static ray_protocol_t *ethernet;
 
 ray_devif_t *virt_internal_create_dev(ray_devif_class_t *devif_class)
 {
@@ -52,6 +54,8 @@ ray_devif_t *virt_internal_create_dev(ray_devif_class_t *devif_class)
 static ray_s32_t virt_start(ray_devif_t *dev, ray_u32_t core_id, dev_start_loop_t loop)
 {
 	RAY_LOG(INFO, "%s has started!\n", dev->name);
+	/* get ethernet input */
+	ethernet = get_protocol_byname(ETHER_DESC);
 	/* Set CPU affinity */
 	loop(dev);
 	return 0;
@@ -59,8 +63,7 @@ static ray_s32_t virt_start(ray_devif_t *dev, ray_u32_t core_id, dev_start_loop_
 
 static ray_s32_t virt_input(ray_devif_t *dev, ray_packet_t *pkt)
 {
-	static size_t counter = 0;
-	RAY_LOG(INFO, "packet len: %d %llu\n", pkt->data_len, counter++);
+	ethernet->proto_input(dev, pkt);
 	return 0;
 }
 

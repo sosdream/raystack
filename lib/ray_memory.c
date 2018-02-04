@@ -22,4 +22,17 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- */
+ *//* here we must desire a function to manager the packet memory */
+#include <ray_types.h>
+#include <ray_malloc.h>
+
+struct memory_meter {
+	
+
+};
+
+/* Memory Init */
+ray_s32_t ray_memory_init()
+{
+
+}

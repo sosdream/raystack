@@ -70,6 +70,8 @@ struct eth_header
   ray_u16_t ether_type;		        /* packet type ID field	*/
 } __attribute__ ((__packed__));
 
+#define ETHER_DESC		"ethernet"
+
 #ifndef ETHER_ADDR_LEN
 #define	ETHER_ADDR_LEN	ETH_ALEN                 /* size of ethernet addr */
 #endif

@@ -54,7 +54,7 @@ static void __attribute__((constructor(101), used)) preinit_##head(void)	\
 }
 
 #define REGISTER_DEV_CLASS(class)											\
-static void __attribute__((constructor(111), used)) preinit_##class(void)	\
+static void __attribute__((constructor(102), used)) preinit_##class(void)	\
 {																			\
 	devif_class_register(&class);											\
 }

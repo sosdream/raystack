@@ -23,69 +23,62 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
-#include <stdio.h>
 #include <ray_log.h>
-#include <ray_errno.h>
 #include <ray_string.h>
-#include <ray_packet.h>
-#include "ray_device.h"
-#include <ray_devif_class.h>	
+#include <ray_proto.h>
+#include <ray_errno.h>
+/* Save all register protocols */
+RAY_STAILQ_HEAD(, ray_protocol_t) ray_protocol_head;
 
-#include <pcap/pcap.h>
-
-#define VIRT_DEVICE_SOURCE "./examples/pcap/test.pcap"
-
-
-void dev_loop(ray_devif_t *devif)
+ray_bool_t proto_exist(ray_protocol_t *protocol)
 {
-	pcap_t *sources;
-	ray_packet_t packet;
-	ray_u8_t *data, errbuf[1024];
-	ray_s32_t nonblock = 0;
-	ray_u32_t count = 0;
-	ray_devif_ops_t *ops;
-	struct pcap_pkthdr header;
+	ray_bool_t ret = FALSE;
+	ray_protocol_t *tmp_proto;
 
-	ops = devif->ops;
+	RAY_STAILQ_FOREACH(tmp_proto, &ray_protocol_head, proto_list) {
+		if (ray_strcmp(tmp_proto->proto_desc, protocol->proto_desc) == 0) {
+			ret = TRUE;
+			break;
+		}
+	}
+	return ret;
+}
 
-	sources = pcap_open_offline(VIRT_DEVICE_SOURCE, errbuf);
-	if (sources == NULL) {
-		RAY_LOG(INFO, "%s\n", ray_strerror(errno))
+ray_protocol_t *get_protocol_byname(const ray_s8_t const *proto_name)
+{
+	ray_protocol_t *tmp_proto;
+
+	if (proto_name == NULL) {
+		errno = EINVAL;
+		goto no_found;
+	}
+
+	RAY_STAILQ_FOREACH(tmp_proto, &ray_protocol_head, proto_list) {
+		if (ray_strcmp(tmp_proto->proto_desc, proto_name) == 0) {
+			return tmp_proto;
+		}
+	}
+
+no_found:
+	return NULL;
+}
+
+void proto_register(ray_protocol_t *protocol)
+{
+	/* Invalid parameter check */
+	if(protocol == NULL) {
+		RAY_LOG(ERR, "Invalid Parameter!\n");
+		errno = EINVAL;
 		return;
 	}
-	pcap_setnonblock(sources, nonblock, errbuf);
 
-	while(count++ < 100) {
-		data = pcap_next(sources, &header);
-		packet.data = data;
-		packet.data_len  = header.len;
-		packet.data_off  = 0;
-		ops->if_input(devif, &packet);
+	if (proto_exist(protocol)) {
+		errno = EEXIST;
+		return;
 	}
-	pcap_close(sources);
+
+	/* Insert the tail list */
+	RAY_STAILQ_INSERT_TAIL(&ray_protocol_head, protocol, proto_list);
 }
 
-int main()
-{
-	ray_devif_t *devif;
-	ray_devif_ops_t *devops;
-	ray_devif_class_t *dpdk_class = devif_class_get_byname("virt");
-	if (dpdk_class == NULL) {
-		RAY_LOG(ERR, "%s\n", ray_strerror(errno));
-		return -1;
-	}
-	dpdk_class->init();
-
-	devif = dpdk_class->create_dev();
-	if (devif == NULL) {
-		RAY_LOG(ERR, "Create dpdk device failed\n");
-		return -1;
-	}
-	devops = devif->ops;
-	devops->if_start(devif, 1, dev_loop);
-	/* implement manager */
-	while (1) {
-		sleep(1);
-	}
-	return 0;
-}
+INIT_PROTOCOL_LIST(ray_protocol_head);

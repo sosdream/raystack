@@ -15,12 +15,16 @@ EXAMPLE_SRC = examples/example.c 			\
 			  lib/virt/ray_virt_class.c 	\
 			  lib/virt/ray_virt_device.c 	\
 			  lib/dpdk/ray_dpdk_class.c 	\
+			  src/core/ray_proto.c 		 	\
+			  src/protocol/ethernet.c 		 	\
 			  lib/dpdk/ray_dpdk_device.c
 EXAMPLE_OBJ = examples/example.o    		\
 			  src/core/ray_devif_class.o 	\
 			  lib/virt/ray_virt_class.o 	\
 			  lib/virt/ray_virt_device.o 	\
 			  lib/dpdk/ray_dpdk_class.o 	\
+			  src/core/ray_proto.o 		 	\
+			  src/protocol/ethernet.o 		 	\
 			  lib/dpdk/ray_dpdk_device.o
 
 DPDK_DECONFIG 	= x86_64-native-linuxapp-gcc

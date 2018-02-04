@@ -23,69 +23,47 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
-#include <stdio.h>
-#include <ray_log.h>
-#include <ray_errno.h>
-#include <ray_string.h>
-#include <ray_packet.h>
-#include "ray_device.h"
-#include <ray_devif_class.h>	
+#ifndef __RAY_PROTO_H__
+#define  __RAY_PROTO_H__ 1
 
-#include <pcap/pcap.h>
+#include "ray_config.h"
+#include <ray_types.h>
+#include <ray_list.h>
+#include <ray_device.h>
 
-#define VIRT_DEVICE_SOURCE "./examples/pcap/test.pcap"
+#ifdef __cplusplus
+extern "C" {
+#endif
 
+struct __ray_protocol;
 
-void dev_loop(ray_devif_t *devif)
-{
-	pcap_t *sources;
-	ray_packet_t packet;
-	ray_u8_t *data, errbuf[1024];
-	ray_s32_t nonblock = 0;
-	ray_u32_t count = 0;
-	ray_devif_ops_t *ops;
-	struct pcap_pkthdr header;
+typedef struct __ray_protocol ray_protocol_t;
 
-	ops = devif->ops;
+struct __ray_protocol {
+	ray_s32_t proto_id;
+	ray_s8_t *proto_desc;
+	ray_s32_t    (*proto_input)(ray_devif_t *, ray_packet_t *);
+	ray_s32_t    (*proto_output)(ray_devif_t *, ray_packet_t *);
+	RAY_STAILQ_ENTRY(ray_protocol_t) proto_list;
+};
 
-	sources = pcap_open_offline(VIRT_DEVICE_SOURCE, errbuf);
-	if (sources == NULL) {
-		RAY_LOG(INFO, "%s\n", ray_strerror(errno))
-		return;
-	}
-	pcap_setnonblock(sources, nonblock, errbuf);
+void proto_register(ray_protocol_t *protocol);
+ray_protocol_t *get_protocol_byname(const ray_s8_t const *proto_name);
 
-	while(count++ < 100) {
-		data = pcap_next(sources, &header);
-		packet.data = data;
-		packet.data_len  = header.len;
-		packet.data_off  = 0;
-		ops->if_input(devif, &packet);
-	}
-	pcap_close(sources);
+#define INIT_PROTOCOL_LIST(head)											\
+static void __attribute__((constructor(101), used)) preinit_##head(void)	\
+{																			\
+	RAY_STAILQ_INIT(&head);													\
 }
 
-int main()
-{
-	ray_devif_t *devif;
-	ray_devif_ops_t *devops;
-	ray_devif_class_t *dpdk_class = devif_class_get_byname("virt");
-	if (dpdk_class == NULL) {
-		RAY_LOG(ERR, "%s\n", ray_strerror(errno));
-		return -1;
-	}
-	dpdk_class->init();
-
-	devif = dpdk_class->create_dev();
-	if (devif == NULL) {
-		RAY_LOG(ERR, "Create dpdk device failed\n");
-		return -1;
-	}
-	devops = devif->ops;
-	devops->if_start(devif, 1, dev_loop);
-	/* implement manager */
-	while (1) {
-		sleep(1);
-	}
-	return 0;
+#define REGISTER_PROTOCOL(proto)											\
+static void __attribute__((constructor(102), used)) preinit_##proto(void)	\
+{																			\
+	proto_register(&proto);													\
 }
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif //__RAY_PROTO_H__
